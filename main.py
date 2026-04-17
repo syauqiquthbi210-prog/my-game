@@ -97,9 +97,8 @@ camera.clip_plane_far = 100 # Jangkauan render diperluas agar hantu jauh tetap t
 flashlight = SpotLight(parent=camera, position=(0, 0, 0), color=color.rgb(200, 190, 170))
 flashlight_on = True
 
-# Atmosphere: Horror Black Fog (Optimasi Jarak Pandang)
-scene.fog_color = color.black
-scene.fog_density = (0.01, 0.05) 
+# Atmosphere: No Fog
+scene.fog_density = (0, 0)
 window.color = color.black
 
 darkness_overlay = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2*camera.aspect_ratio, 2), texture=load_texture('vignette.png'), transparent=True, unlit=True, alpha=1.0, z=1)
@@ -790,21 +789,9 @@ in_menu = True
 # Mulai player di jalan kosong (1, 1) x 4
 player.position = (1*4, 2, 1*4)
 
-# ================= SISTEM KABUT VOLUMETRIK (DRIFTING FOG) =================
+# ================= SISTEM KABUT VOLUMETRIK (DISABLED) =================
 fog_particles = []
-for _ in range(55): # Turunkan sedikit dari 80 ke 55
-    p = Entity(
-        parent=scene,
-        model='quad',
-        texture='radial_gradient', # Built-in Ursina soft circle
-        scale=(random.uniform(30, 60), random.uniform(30, 60)), 
-        color=color.rgba32(200, 200, 200, random.randint(8, 20)), # Sedikit ditebalkan warnanya
-        position=(player.x + random.uniform(-30, 30), random.uniform(-1, 5), player.z + random.uniform(-30, 30)),
-        double_sided=True,
-    )
-    p.drift_speed_x = random.uniform(-0.8, 0.8)
-    p.drift_speed_z = random.uniform(-0.8, 0.8)
-    fog_particles.append(p)
+# (Particle loop removed)
 
 # ================= MENU UTAMA & STORY =================
 menu_parent = Entity(parent=camera.ui, z=-10)
@@ -956,7 +943,8 @@ def update():
         
     jumpscare_active_now = False
         
-    # Update Kabut Volumetrik
+    # Update Kabut Volumetrik (Disabled)
+    """
     for p in fog_particles:
         p.look_at_2d(camera.position, 'y') # Billboarding wajah ke arah pemain
         p.x += p.drift_speed_x * time.dt
@@ -968,6 +956,7 @@ def update():
             p.x = player.x + random.uniform(-30, 30)
             p.z = player.z + random.uniform(-30, 30)
             p.y = random.uniform(-1, 5)
+    """
 
     if exit_door.enabled and distance(player, exit_door) < 3.0:
         if current_day == 1:
@@ -1065,11 +1054,12 @@ def update():
         
     # Senter Flicker jika hantu dekat
     if flashlight_on:
-        scene.fog_density = 0.05
+        pass # Fog disabled
+
         
         if (ghost.active and dist_to_ghost < 15):
-            # Dynamic fog: semakin dekat, kabut semakin pekat
-            scene.fog_density = (max(2, dist_to_ghost/2), max(5, dist_to_ghost*1.5))
+            # Dynamic fog disabled
+
             
             # Sistem 3-kedipan peringatan
             if ghost.blink_count < 3:
@@ -1098,7 +1088,6 @@ def update():
                 flashlight.enabled = True
                 
         else:
-            scene.fog_density = (8, 30)
             darkness_overlay.texture = 'vignette.png'
             darkness_overlay.color = color.black
             darkness_overlay.alpha = 0.98
@@ -1111,7 +1100,6 @@ def update():
             
     else:
         # JANGANKAN JAUH, SEKAT SAJA SUDAH GELAP TOTAL JIKA SENTER MATI
-        scene.fog_density = (2, 10) if (ghost.active and dist_to_ghost < 15) else (1, 8) 
         darkness_overlay.texture = None
         darkness_overlay.color = color.black
         darkness_overlay.alpha = 1.0 # Benar-benar hitam pekat
