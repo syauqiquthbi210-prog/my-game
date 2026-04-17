@@ -17,6 +17,11 @@ from bidi.algorithm import get_display
 
 from modules.jurnal_system import JurnalManager, LembarCatatan
 
+try:
+    import gltf
+except ImportError:
+    pass
+
 
 def format_arabic(text):
     """Format teks Arab agar tersambung dan terbaca RTL di Ursina.
@@ -37,6 +42,11 @@ API_BASE = f"{SERVER_URL}/api/soal/random"
 
 app = Ursina()
 
+try:
+    gltf.patch_loader(app.loader)
+except Exception as e:
+    print(f"Warning: Failed to patch glTF loader: {e}")
+
 
 
 
@@ -46,21 +56,21 @@ app = Ursina()
 
 
 # Audio
-ambient_sound = Audio('ambient.wav', loop=True, autoplay=True, volume=0.5)
-footstep_sound = Audio('langkah_kaki.mp3', loop=False, autoplay=False, volume=2.1)
+ambient_sound = Audio('assets/audio/ambient.wav', loop=True, autoplay=True, volume=0.5)
+footstep_sound = Audio('assets/audio/langkah_kaki.mp3', loop=False, autoplay=False, volume=2.1)
 step_triggered = False
-pickup_sound = Audio('pickup.wav', autoplay=False, volume=1.0)
-jumpscare_sound = Audio('kaget.wav', autoplay=False, volume=2.0)
-heartbeat_sound = Audio('heartbeat.wav', loop=True, autoplay=False, volume=0.0)
-panting_sound = Audio('panting.wav', loop=True, autoplay=False, volume=1.0)
-unlock_sound = Audio('unlock.wav', autoplay=False, volume=1.5)
-door_open_sound = Audio('pintu_buka.mp3', autoplay=False, volume=2.0)
+pickup_sound = Audio('assets/audio/pickup.wav', autoplay=False, volume=1.0)
+jumpscare_sound = Audio('assets/audio/kaget.wav', autoplay=False, volume=2.0)
+heartbeat_sound = Audio('assets/audio/heartbeat.wav', loop=True, autoplay=False, volume=0.0)
+panting_sound = Audio('assets/audio/panting.wav', loop=True, autoplay=False, volume=1.0)
+unlock_sound = Audio('assets/audio/unlock.wav', autoplay=False, volume=1.5)
+door_open_sound = Audio('assets/audio/pintu_buka.mp3', autoplay=False, volume=2.0)
 
 # Random Ambient Events System
 creepy_events = [
-    Audio('creepy_event_1.wav', autoplay=False, volume=1.2),
-    Audio('creepy_event_2.wav', autoplay=False, volume=0.7),
-    Audio('creepy_event_3.wav', autoplay=False, volume=1.5)
+    Audio('assets/audio/creepy_event_1.wav', autoplay=False, volume=1.2),
+    Audio('assets/audio/creepy_event_2.wav', autoplay=False, volume=0.7),
+    Audio('assets/audio/creepy_event_3.wav', autoplay=False, volume=1.5)
 ]
 ambient_event_timer = random.uniform(30.0, 90.0)
 poltergeist_timer = random.uniform(45.0, 120.0)
@@ -102,12 +112,15 @@ flashlight_on = True
 scene.fog_density = (0, 0)
 window.color = color.black
 
-darkness_overlay = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2*camera.aspect_ratio, 2), texture=load_texture('vignette.png'), transparent=True, unlit=True, alpha=0.0, z=1, enabled=False)
+darkness_overlay = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2*camera.aspect_ratio, 2), texture=load_texture('assets/images/vignette.png'), transparent=True, unlit=True, alpha=0.8, z=1)
+
+
 
 
 # Lantai dan Langit-langit
-ground = Entity(model='plane', scale=(250, 1, 250), color=color.white, texture=load_texture('lantai.jpg'), texture_scale=(100,100), collider='box', position=(40, -0.1, 40))
-ceiling = Entity(model='plane', position=(40, 5, 40), rotation=(180, 0, 0), scale=(250, 1, 250), color=color.white, texture=load_texture('tembok.png'), texture_scale=(100,100), collider='box')
+ground = Entity(model='plane', scale=(250, 1, 250), color=color.white, texture=load_texture('assets/images/lantai.jpg'), texture_scale=(100,100), collider='box', position=(40, -0.1, 40))
+ceiling = Entity(model='plane', position=(40, 5, 40), rotation=(180, 0, 0), scale=(250, 1, 250), color=color.white, texture=load_texture('assets/images/tembok.png'), texture_scale=(100,100), collider='box')
+
 
 # Rumah Mencekam (C = Lemari, D = Pintu, K = Kunci, 1 = Tembok, 0 = Jalan)
 maze = [
@@ -145,7 +158,7 @@ for z, row in enumerate(maze):
             e = Entity(
                 model='cube', 
                 scale=(4, 5, 4), 
-                texture=load_texture('tembok.png'), 
+                texture=load_texture('assets/images/tembok.png'), 
                 color=color.rgb(40/255, 40/255, 45/255), 
                 collider='box', 
                 position=(x*4, 2.5, z*4)
@@ -194,7 +207,7 @@ class AmmoBox(Entity):
         super().__init__(
             model='quad',
             scale=(0.8, 0.8),
-            texture=load_texture('horror_ammo.png'),
+            texture=load_texture('assets/images/horror_ammo.png'),
             double_sided=True,
             rotation_x=90,
             collider='box',
@@ -219,7 +232,7 @@ class Key(Entity):
         super().__init__(
             model='quad',
             scale=(0.6, 0.6),
-            texture=load_texture('horror_key.png'),
+            texture=load_texture('assets/images/horror_key.png'),
             double_sided=True,
             rotation_x=90,
             collider='box',
@@ -233,7 +246,7 @@ class Door(Entity):
             model='cube',
             scale=(3.9, 3.9, 0.2), # Sekarang pipih (x=lebar 3.9, y=tinggi 3.9, z=tebal 0.2)
             color=color.white,
-            texture=load_texture('pintu_bloody.png') if bloody else load_texture('pintu.png'),
+            texture=load_texture('assets/images/pintu_bloody.png') if bloody else load_texture('assets/images/pintu.png'),
             collider='box',
             position=position,
             rotation_y=rot_y,
@@ -259,7 +272,7 @@ class Bookshelf(Entity):
         super().__init__(
             model='cube',
             scale=(3.9, 4.0, 1.0),
-            texture=load_texture('bookshelf.png'),
+            texture=load_texture('assets/images/bookshelf.png'),
             position=position,
             rotation_y=rotation_y
         )
@@ -270,7 +283,7 @@ class Bookshelf(Entity):
 class KitchenTable(Entity):
     def __init__(self, position):
         super().__init__(
-            model=load_model('meja_dapur.glb'),
+            model=load_model('assets/models/meja_dapur.glb'),
             scale=(1.2, 1.2, 1.2), # Diperbesar secara masif
             position=(position[0], 0, position[2] - 1.0), # Mundurkan agar tidak menembus pintu
             rotation_y=180, # Balik arah agar meja menghadap lorong
@@ -281,7 +294,7 @@ class KitchenTable(Entity):
 class CreepyBed(Entity):
     def __init__(self, position):
         super().__init__(
-            model=load_model('kasur_serem.glb'),
+            model=load_model('assets/models/kasur_serem.glb'),
             scale=(2.0, 2.0, 2.0), # Skala raksasa
             position=(position[0] - 1.8, 0, position[2]), # Rapatkan ke dinding kiri lorong secara agresif
             rotation_y=90, # Menghadap ke arah lorong terbuka
@@ -292,7 +305,7 @@ class CreepyBed(Entity):
 class MusicInstrument(Entity):
     def __init__(self, position):
         super().__init__(
-            model=load_model('alat_music.glb'),
+            model=load_model('assets/models/alat_music.glb'),
             scale=(1.8, 1.8, 1.8), 
             position=(position[0] + 0.5, 1.3, position[2] + 0.5), # Diatur ke Y=1.3 untuk mengangkat pusat model agar menapak lantai
             rotation_y=135, 
@@ -318,7 +331,7 @@ exit_door = ExitDoor(position=(4, 2, 4)) # Di posisi tempat player mulai
 class Ghost(Entity):
     def __init__(self):
         super().__init__(
-            model=load_model('kuntilanak_indonesian_ghost_patched.glb'),
+            model=load_model('assets/models/kuntilanak_indonesian_ghost_patched.glb'),
             scale=(2.2, 2.2, 2.2), # Skala lebih besar supaya seram (sekitar 3.8m tinggi!)
             position=(0, -0.6, 0), # Berdiri di ground (agak tenggelam sedikit untuk atur kaki)
             collider='box'
@@ -720,7 +733,7 @@ def check_answer(selected_idx, correct_idx):
         close_quiz()
     else:
         # === JAWABAN SALAH: Item tidak terambil, darah berkurang ===
-        Audio('creepy_event_2.wav', autoplay=True, volume=2.0)
+        Audio('assets/audio/creepy_event_2.wav', autoplay=True, volume=2.0)
         player.sanity -= 20
         player.health -= 30  # Darah berkurang
         if player.health < 0: player.health = 0
@@ -783,8 +796,8 @@ walk_timer = 0.0
 
 # Jumpscare overlay menggunakan gambar 2D di UI layar penuh
 jumpscare_bg = Entity(parent=camera.ui, model='quad', color=color.black, scale=(3, 3), z=1, enabled=False)
-jumpscare_overlay = Entity(parent=camera.ui, model='quad', texture=load_texture('kuntilanak_1.png'), scale=(1.778 * 1.5, 1.5), z=0, color=color.white, transparent=True, enabled=False)
-jumpscare_blood = Entity(parent=camera.ui, model='quad', texture=load_texture('blood_splatter.png'), scale=(1.778 * 2, 2), z=-2, transparent=True, enabled=False)
+jumpscare_overlay = Entity(parent=camera.ui, model='quad', texture=load_texture('assets/images/kuntilanak_1.png'), scale=(1.778 * 1.5, 1.5), z=0, color=color.white, transparent=True, enabled=False)
+jumpscare_blood = Entity(parent=camera.ui, model='quad', texture=load_texture('assets/images/blood_splatter.png'), scale=(1.778 * 2, 2), z=-2, transparent=True, enabled=False)
 game_over = False
 in_menu = True
 
@@ -797,8 +810,8 @@ fog_particles = []
 
 # ================= MENU UTAMA & STORY =================
 menu_parent = Entity(parent=camera.ui, z=-10)
-menu_bg = Entity(parent=menu_parent, model='quad', texture=load_texture('menu_bg.png'), scale=(1.778*2, 2), color=color.white)
-menu_vignette = Entity(parent=menu_parent, model='quad', texture=load_texture('vignette.png'), scale=(1.778*2, 2), color=color.rgba32(100, 0, 0, 200), z=-0.05)
+menu_bg = Entity(parent=menu_parent, model='quad', texture=load_texture('assets/images/menu_bg.png'), scale=(1.778*2, 2), color=color.white)
+menu_vignette = Entity(parent=menu_parent, model='quad', texture=load_texture('assets/images/vignette.png'), scale=(1.778*2, 2), color=color.rgba32(100, 0, 0, 200), z=-0.05)
 
 # Text dengan drop shadow merayap
 menu_title_shadow = Text(parent=menu_parent, text='Ilmu Alat:\nMisteri Nahwu Shorof', position=(0.005, 0.295), scale=3, origin=(0, 0), color=color.black, z=-0.08)
@@ -808,7 +821,7 @@ menu_subtitle_shadow = Text(parent=menu_parent, text='BY: AREK LOMBOK', position
 menu_subtitle = Text(parent=menu_parent, text='BY: AREK LOMBOK', position=(0, 0.18), scale=1.5, origin=(0, 0), color=color.white, z=-0.1)
 
 story_bg = Entity(parent=camera.ui, model='quad', color=color.clear, scale=(1.778*2, 2), z=-15)
-story_dirty = Entity(parent=camera.ui, model='quad', texture=load_texture('vignette.png'), color=color.clear, scale=(1.778*2, 2), z=-15.5)
+story_dirty = Entity(parent=camera.ui, model='quad', texture=load_texture('assets/images/vignette.png'), color=color.clear, scale=(1.778*2, 2), z=-15.5)
 story_text = Text(parent=camera.ui, text='', position=(0, 0), origin=(0,0), scale=2, color=color.clear, z=-16)
 story_audio = None
 
@@ -825,7 +838,7 @@ def actual_start():
         destroy(story_audio)
     player.enable()
     mouse.locked = True
-    Audio('door_slam.wav', autoplay=True, volume=2.0)
+    Audio('assets/audio/door_slam.wav', autoplay=True, volume=2.0)
 
 def sequence_6():
     if not in_menu: return
@@ -881,8 +894,8 @@ def start_game():
     play_button.enabled = False
     quit_button.enabled = False
     skip_button.enabled = True
-    Audio('ambient.wav', autoplay=True, volume=1.0) # Mainkan suara ambient awal pembuka
-    story_audio = Audio('heartbeat.wav', autoplay=True, volume=0.7, loop=True) # Tambah detak jantung pelan merinding
+    Audio('assets/audio/ambient.wav', autoplay=True, volume=1.0) # Mainkan suara ambient awal pembuka
+    story_audio = Audio('assets/audio/heartbeat.wav', autoplay=True, volume=0.7, loop=True) # Tambah detak jantung pelan merinding
     story_bg.animate_color(color.black, duration=2.0)
     story_dirty.animate_color(color.rgba32(150, 0, 0, 100), duration=20.0) # Pelan-pelan vignette merah merayap menjadi lebih gelap
     invoke(sequence_1, delay=3.0)
@@ -913,7 +926,7 @@ mouse.locked = False
 handgun = Entity(
     parent=camera.ui,
     model='quad',
-    texture=load_texture('123.png'),
+    texture=load_texture('assets/images/123.png'),
     scale=(0.6 * camera.aspect_ratio, 0.6), # Diperkecil sedikit
     position=(0.3, -0.4, 0), # Agak ke kanan, di sebelah kiri Ammo
     color=color.white # Jangan digelapkan
@@ -1032,11 +1045,11 @@ def update():
     dist_to_ghost = distance(player, ghost) if ghost.active else 999
     
     # Logika Sistem Detak Jantung Jarak Dekat
-    if ghost.active and dist_to_ghost < 15:
+    if ghost.active and dist_to_ghost < 20:
         if not heartbeat_sound.playing:
             heartbeat_sound.play()
-        heartbeat_sound.volume = 1.0 - (dist_to_ghost / 15.0)
-        heartbeat_sound.pitch = 1.0 + (1.0 - (dist_to_ghost / 15.0)) * 0.5
+        heartbeat_sound.volume = max(0, 1.2 - (dist_to_ghost / 20.0))
+        heartbeat_sound.pitch = 1.0 + (1.0 - (dist_to_ghost / 20.0)) * 0.5
         
         # Efek Pulsing Vignette Darah HANYA BILA senter tidak sedang kedap-kedip mati
         if not getattr(ghost, 'is_warning', False) and flashlight_on:
@@ -1059,38 +1072,36 @@ def update():
         pass # Fog disabled
 
         
-        if (ghost.active and dist_to_ghost < 15):
+        if (ghost.active and dist_to_ghost < 20):
             # Dynamic fog disabled
 
             
-            # Sistem 3-kedipan peringatan
+            # Sistem 3-kedipan peringatan (Anti-Lag Optimization)
             if ghost.blink_count < 3:
-                ghost.flicker_timer -= time.dt
-                if ghost.flicker_timer <= 0:
-                    if not ghost.is_warning: # Jika sedang nyala, matikan sekejap
-                        darkness_overlay.texture = None
-                        darkness_overlay.color = color.black
+                ghost.flicker_timer += time.dt
+                flicker_interval = 0.8 if ghost.is_warning else 0.4
+                
+                if ghost.flicker_timer > flicker_interval:
+                    ghost.flicker_timer = 0
+                    ghost.is_warning = not ghost.is_warning # Toggle state
+                    
+                    if ghost.is_warning:
+                        # Fase: Senter Mati / Gelap
                         darkness_overlay.alpha = 1.0
                         flashlight.enabled = False
-                        ghost.is_warning = True
-                        ghost.flicker_timer = 0.8 # Matinya diperlama menjadi nyaris 1 detik
-                    else: # Jika sedang mati, nyalakan kembali dan tambah hitungan
-                        darkness_overlay.texture = 'vignette.png'
-                        darkness_overlay.color = color.black
+                    else:
+                        # Fase: Senter Nyala / Remang
                         darkness_overlay.alpha = 0.95
                         flashlight.enabled = True
-                        ghost.is_warning = False
                         ghost.blink_count += 1
-                        ghost.flicker_timer = 0.4 # Nyala selama 0.4 detik (jeda antar kedip)
             else:
                 # Setelah 3 kali kedip, senter stabil menyala
-                darkness_overlay.texture = 'vignette.png'
-                darkness_overlay.color = color.black
                 darkness_overlay.alpha = 0.95
                 flashlight.enabled = True
+
                 
         else:
-            darkness_overlay.texture = 'vignette.png'
+            # Senter normal saat jauh (Optimization)
             darkness_overlay.color = color.black
             darkness_overlay.alpha = 0.98
             # Reset ukuran efek senter saat jauh
@@ -1102,10 +1113,9 @@ def update():
             
     else:
         # JANGANKAN JAUH, SEKAT SAJA SUDAH GELAP TOTAL JIKA SENTER MATI
-        darkness_overlay.texture = None
-        darkness_overlay.color = color.black
         darkness_overlay.alpha = 1.0 # Benar-benar hitam pekat
         flashlight.enabled = False
+
         
         # Volume langkah kaki diatur secara global dalam blok pergerakan di bawah
         pass
@@ -1217,7 +1227,7 @@ def update():
             target_door.is_open = True
             
             # Putar suara bantingan keras (pitch dinaikkan sedikit agar melengking/keras)
-            slam_sound = Audio('door_slam.wav', autoplay=False, volume=2.0)
+            slam_sound = Audio('assets/audio/door_slam.wav', autoplay=False, volume=2.0)
             slam_sound.pitch = random.uniform(0.9, 1.1)
             slam_sound.play()
             
@@ -1365,7 +1375,8 @@ def update():
                 if dist < 3.5:
                     ghost.look_timer += time.dt * 2.0
                 
-                is_jumpscare = is_looking and (ghost.look_timer > jumpscare_threshold or dist < 2.0)
+                # Syarat Jumpscare: Menatap hantu terlalu lama ATAU hantu terlalu dekat (Stealth catch)
+                is_jumpscare = (is_looking and ghost.look_timer > jumpscare_threshold) or (dist < 2.5)
                 if is_jumpscare:
                     jumpscare_active_now = True
                     player.health -= time.dt * 60.0
@@ -1380,7 +1391,7 @@ def update():
                         jumpscare_overlay.scale = (1.778 * 1.3, 1.3)
                         jumpscare_overlay.animate_scale((1.778 * 1.5, 1.5), duration=2)
                         darkness_overlay.enabled = True
-                        darkness_overlay.texture = 'vignette.png'
+                        darkness_overlay.texture = load_texture('assets/images/vignette.png')
                         darkness_overlay.color = color.red
                         darkness_overlay.alpha = 0.95
                         darkness_overlay.z = -1
@@ -1543,7 +1554,7 @@ def input(key):
         ammo_text.text = f'Ammo: {bullets}'
         
         # Audio Tembakan
-        s = Audio('mrfriends-pistol-shot-233473.mp3', autoplay=True, volume=1.5)
+        s = Audio('assets/audio/mrfriends-pistol-shot-233473.mp3', autoplay=True, volume=1.5)
         destroy(s, delay=2.0)
         
         # Efek Recoil
@@ -1559,7 +1570,7 @@ def input(key):
         
         if hit_info.hit and hit_info.entity == ghost:
             ghost.color = color.orange
-            Audio('creepy_event_3.wav', autoplay=True, volume=2.0, pitch=1.8)
+            Audio('assets/audio/creepy_event_3.wav', autoplay=True, volume=2.0, pitch=1.8)
             ghost.active = False
             ghost.position = (0, -50, 0)
             ghost.spawn_timer = -30.0
