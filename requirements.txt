@@ -4,3 +4,4 @@ python-bidi
 requests
 panda3d
 panda3d-gltf
+simplepbr

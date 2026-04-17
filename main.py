@@ -4,6 +4,11 @@ if getattr(sys, 'frozen', False):
     os.chdir(sys._MEIPASS)
 
 from ursina import *
+try:
+    import gltf
+    gltf.patch_loader()
+except Exception:
+    pass
 from ursina import scene, color, window, Entity, Audio, PointLight, AmbientLight, SpotLight, Text, distance, destroy, time, Vec3, Vec2, camera, raycast, held_keys, application, invoke, lerp
 from ursina.prefabs.first_person_controller import FirstPersonController
 import random
@@ -16,11 +21,6 @@ import arabic_reshaper
 from bidi.algorithm import get_display
 
 from modules.jurnal_system import JurnalManager, LembarCatatan
-
-try:
-    import gltf
-except ImportError:
-    pass
 
 
 def format_arabic(text):
@@ -43,9 +43,10 @@ API_BASE = f"{SERVER_URL}/api/soal/random"
 app = Ursina()
 
 try:
-    gltf.patch_loader(app.loader)
+    import simplepbr
+    simplepbr.init()
 except Exception as e:
-    print(f"Warning: Failed to patch glTF loader: {e}")
+    print(f"Warning: Failed to initialize PBR shading: {e}")
 
 
 
@@ -283,7 +284,7 @@ class Bookshelf(Entity):
 class KitchenTable(Entity):
     def __init__(self, position):
         super().__init__(
-            model=load_model('assets/models/meja_dapur.glb'),
+            model=load_model('assets/models/meja_dapur'),
             scale=(1.2, 1.2, 1.2), # Diperbesar secara masif
             position=(position[0], 0, position[2] - 1.0), # Mundurkan agar tidak menembus pintu
             rotation_y=180, # Balik arah agar meja menghadap lorong
@@ -294,7 +295,7 @@ class KitchenTable(Entity):
 class CreepyBed(Entity):
     def __init__(self, position):
         super().__init__(
-            model=load_model('assets/models/kasur_serem.glb'),
+            model=load_model('assets/models/kasur_serem'),
             scale=(2.0, 2.0, 2.0), # Skala raksasa
             position=(position[0] - 1.8, 0, position[2]), # Rapatkan ke dinding kiri lorong secara agresif
             rotation_y=90, # Menghadap ke arah lorong terbuka
@@ -305,7 +306,7 @@ class CreepyBed(Entity):
 class MusicInstrument(Entity):
     def __init__(self, position):
         super().__init__(
-            model=load_model('assets/models/alat_music.glb'),
+            model=load_model('assets/models/alat_music'),
             scale=(1.8, 1.8, 1.8), 
             position=(position[0] + 0.5, 1.3, position[2] + 0.5), # Diatur ke Y=1.3 untuk mengangkat pusat model agar menapak lantai
             rotation_y=135, 
@@ -331,7 +332,7 @@ exit_door = ExitDoor(position=(4, 2, 4)) # Di posisi tempat player mulai
 class Ghost(Entity):
     def __init__(self):
         super().__init__(
-            model=load_model('assets/models/kuntilanak_indonesian_ghost_patched.glb'),
+            model=load_model('assets/models/kuntilanak_indonesian_ghost_patched'),
             scale=(2.2, 2.2, 2.2), # Skala lebih besar supaya seram (sekitar 3.8m tinggi!)
             position=(0, -0.6, 0), # Berdiri di ground (agak tenggelam sedikit untuk atur kaki)
             collider='box'
@@ -1069,39 +1070,35 @@ def update():
         
     # Senter Flicker jika hantu dekat
     if flashlight_on:
-        pass # Fog disabled
-
-        
-        if (ghost.active and dist_to_ghost < 20):
-            # Dynamic fog disabled
-
-            
-            # Sistem 3-kedipan peringatan (Anti-Lag Optimization)
+        if (ghost.active and dist_to_ghost < 15):
+            # Sistem 3-kedipan peringatan
             if ghost.blink_count < 3:
-                ghost.flicker_timer += time.dt
-                flicker_interval = 0.8 if ghost.is_warning else 0.4
-                
-                if ghost.flicker_timer > flicker_interval:
-                    ghost.flicker_timer = 0
-                    ghost.is_warning = not ghost.is_warning # Toggle state
-                    
-                    if ghost.is_warning:
-                        # Fase: Senter Mati / Gelap
+                ghost.flicker_timer -= time.dt
+                if ghost.flicker_timer <= 0:
+                    if not ghost.is_warning: # Jika sedang nyala, matikan sekejap
+                        darkness_overlay.texture = None
+                        darkness_overlay.color = color.black
                         darkness_overlay.alpha = 1.0
                         flashlight.enabled = False
-                    else:
-                        # Fase: Senter Nyala / Remang
+                        ghost.is_warning = True
+                        ghost.flicker_timer = 0.8 # Matinya diperlama menjadi nyaris 1 detik
+                    else: # Jika sedang mati, nyalakan kembali dan tambah hitungan
+                        darkness_overlay.texture = load_texture('assets/images/vignette.png')
+                        darkness_overlay.color = color.black
                         darkness_overlay.alpha = 0.95
                         flashlight.enabled = True
+                        ghost.is_warning = False
                         ghost.blink_count += 1
+                        ghost.flicker_timer = 0.4 # Nyala selama 0.4 detik (jeda antar kedip)
             else:
                 # Setelah 3 kali kedip, senter stabil menyala
+                darkness_overlay.texture = load_texture('assets/images/vignette.png')
+                darkness_overlay.color = color.black
                 darkness_overlay.alpha = 0.95
                 flashlight.enabled = True
-
                 
         else:
-            # Senter normal saat jauh (Optimization)
+            darkness_overlay.texture = load_texture('assets/images/vignette.png')
             darkness_overlay.color = color.black
             darkness_overlay.alpha = 0.98
             # Reset ukuran efek senter saat jauh

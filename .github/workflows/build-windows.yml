@@ -30,6 +30,8 @@ jobs:
         --collect-all panda3d `
         --collect-all ursina `
         --collect-all panda3d-gltf `
+        --collect-all simplepbr `
+        --copy-metadata panda3d-gltf `
         --add-data "assets;assets" `
         --add-data "modules;modules" `
         --add-data "config.prc;." `
