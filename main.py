@@ -92,16 +92,18 @@ ammo_text = Text(text=f'Ammo: {bullets}', position=(0.7, -0.42), scale=1.5, colo
 
 
 
-# Senter dan Cahaya (Murky Warm White)
-camera.clip_plane_far = 100 # Jangkauan render diperluas agar hantu jauh tetap terdeteksi
-flashlight = SpotLight(parent=camera, position=(0, 0, 0), color=color.rgb(200, 190, 170))
+# Senter dan Cahaya (Full Brightness for Testing/Visibility)
+camera.clip_plane_far = 100 
+AmbientLight(color=color.white) # Menyalakan lampu ruangan sepenuhnya
+flashlight = SpotLight(parent=camera, position=(0, 0, 0), color=color.white)
 flashlight_on = True
 
 # Atmosphere: No Fog
 scene.fog_density = (0, 0)
 window.color = color.black
 
-darkness_overlay = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2*camera.aspect_ratio, 2), texture=load_texture('vignette.png'), transparent=True, unlit=True, alpha=1.0, z=1)
+darkness_overlay = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2*camera.aspect_ratio, 2), texture=load_texture('vignette.png'), transparent=True, unlit=True, alpha=0.0, z=1, enabled=False)
+
 
 # Lantai dan Langit-langit
 ground = Entity(model='plane', scale=(250, 1, 250), color=color.white, texture=load_texture('lantai.jpg'), texture_scale=(100,100), collider='box', position=(40, -0.1, 40))
