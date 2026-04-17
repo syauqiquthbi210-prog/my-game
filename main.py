@@ -31,11 +31,8 @@ def format_arabic(text):
 # Path Font Arab Kustom
 ARABIC_FONT = 'assets/fonts/Amiri-Regular.ttf'
 
-# ==================== KONFIGURASI SERVER URL ====================
-# Untuk development lokal, gunakan: "http://localhost:3000"
-# Untuk deploy via Ngrok, ganti dengan URL Ngrok kamu, contoh:
-#   SERVER_URL = "https://abcd-1234.ngrok-free.app"
-SERVER_URL = "http://192.168.18.178:3000"
+# URL Backend Server (Ngrok Live)
+SERVER_URL = "https://singular-saddlebag-scoured.ngrok-free.dev"
 API_BASE = f"{SERVER_URL}/api/soal/random"
 
 app = Ursina()
@@ -100,10 +97,10 @@ camera.clip_plane_far = 100 # Jangkauan render diperluas agar hantu jauh tetap t
 flashlight = SpotLight(parent=camera, position=(0, 0, 0), color=color.rgb(200, 190, 170))
 flashlight_on = True
 
-# Atmosphere: Medium mist gray fog
-scene.fog_color = color.rgba32(35, 35, 35, 255) # Dark grimy fog
+# Atmosphere: Horror Black Fog (Optimasi Jarak Pandang)
+scene.fog_color = color.black
+scene.fog_density = (0.01, 0.05) 
 window.color = color.black
-scene.fog_density = (10, 45) # Jarak pandang menengah, cukup menutupi latar
 
 darkness_overlay = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2*camera.aspect_ratio, 2), texture=load_texture('vignette.png'), transparent=True, unlit=True, alpha=1.0, z=1)
 

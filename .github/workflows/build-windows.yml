@@ -30,12 +30,14 @@ jobs:
         --collect-all panda3d `
         --collect-all ursina `
         --add-data "assets;assets" `
+        --add-data "modules;modules" `
         --add-data "config.prc;." `
         --add-data "*.png;." `
         --add-data "*.jpg;." `
         --add-data "*.glb;." `
         --add-data "*.wav;." `
         --add-data "*.mp3;." `
+        --add-data "*.ttf;." `
         --hidden-import="direct.interval.IntervalManager" `
         --hidden-import="panda3d.core" `
         --hidden-import="panda3d.direct" `
