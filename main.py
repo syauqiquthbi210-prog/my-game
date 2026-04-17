@@ -43,10 +43,7 @@ app = Ursina()
 
 
 
-# Atmosfer Horor (Global Fog)
-scene.fog_density = (10, 40) 
-scene.fog_color = color.rgba32(25, 25, 25, 255)
-window.color = color.black
+# Atmosfer Horor (Global Fog) akan dimuat setelah Player
 
 # Ambient Light untuk cahaya minimal agar tidak benar-benar buta
 
@@ -108,11 +105,11 @@ scene.fog_color = color.rgba32(35, 35, 35, 255) # Dark grimy fog
 window.color = color.black
 scene.fog_density = (10, 45) # Jarak pandang menengah, cukup menutupi latar
 
-darkness_overlay = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2*camera.aspect_ratio, 2), texture='vignette.png', transparent=True, unlit=True, alpha=1.0, z=1)
+darkness_overlay = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2*camera.aspect_ratio, 2), texture=load_texture('vignette.png'), transparent=True, unlit=True, alpha=1.0, z=1)
 
 # Lantai dan Langit-langit
-ground = Entity(model='plane', scale=(250, 1, 250), color=color.white, texture='lantai.jpg', texture_scale=(100,100), collider='box', position=(40, -0.1, 40))
-ceiling = Entity(model='plane', position=(40, 5, 40), rotation=(180, 0, 0), scale=(250, 1, 250), color=color.white, texture='tembok.png', texture_scale=(100,100), collider='box')
+ground = Entity(model='plane', scale=(250, 1, 250), color=color.white, texture=load_texture('lantai.jpg'), texture_scale=(100,100), collider='box', position=(40, -0.1, 40))
+ceiling = Entity(model='plane', position=(40, 5, 40), rotation=(180, 0, 0), scale=(250, 1, 250), color=color.white, texture=load_texture('tembok.png'), texture_scale=(100,100), collider='box')
 
 # Rumah Mencekam (C = Lemari, D = Pintu, K = Kunci, 1 = Tembok, 0 = Jalan)
 maze = [
@@ -150,7 +147,7 @@ for z, row in enumerate(maze):
             e = Entity(
                 model='cube', 
                 scale=(4, 5, 4), 
-                texture='tembok.png', 
+                texture=load_texture('tembok.png'), 
                 color=color.rgb(40/255, 40/255, 45/255), 
                 collider='box', 
                 position=(x*4, 2.5, z*4)
@@ -199,7 +196,7 @@ class AmmoBox(Entity):
         super().__init__(
             model='quad',
             scale=(0.8, 0.8),
-            texture='horror_ammo.png',
+            texture=load_texture('horror_ammo.png'),
             double_sided=True,
             rotation_x=90,
             collider='box',
@@ -224,7 +221,7 @@ class Key(Entity):
         super().__init__(
             model='quad',
             scale=(0.6, 0.6),
-            texture='horror_key.png',
+            texture=load_texture('horror_key.png'),
             double_sided=True,
             rotation_x=90,
             collider='box',
@@ -238,7 +235,7 @@ class Door(Entity):
             model='cube',
             scale=(3.9, 3.9, 0.2), # Sekarang pipih (x=lebar 3.9, y=tinggi 3.9, z=tebal 0.2)
             color=color.white,
-            texture='pintu_bloody.png' if bloody else 'pintu.png',
+            texture=load_texture('pintu_bloody.png') if bloody else load_texture('pintu.png'),
             collider='box',
             position=position,
             rotation_y=rot_y,
@@ -264,7 +261,7 @@ class Bookshelf(Entity):
         super().__init__(
             model='cube',
             scale=(3.9, 4.0, 1.0),
-            texture='bookshelf.png',
+            texture=load_texture('bookshelf.png'),
             position=position,
             rotation_y=rotation_y
         )
@@ -275,7 +272,7 @@ class Bookshelf(Entity):
 class KitchenTable(Entity):
     def __init__(self, position):
         super().__init__(
-            model='meja_dapur.glb',
+            model=load_model('meja_dapur.glb'),
             scale=(1.2, 1.2, 1.2), # Diperbesar secara masif
             position=(position[0], 0, position[2] - 1.0), # Mundurkan agar tidak menembus pintu
             rotation_y=180, # Balik arah agar meja menghadap lorong
@@ -286,7 +283,7 @@ class KitchenTable(Entity):
 class CreepyBed(Entity):
     def __init__(self, position):
         super().__init__(
-            model='kasur_serem.glb',
+            model=load_model('kasur_serem.glb'),
             scale=(2.0, 2.0, 2.0), # Skala raksasa
             position=(position[0] - 1.8, 0, position[2]), # Rapatkan ke dinding kiri lorong secara agresif
             rotation_y=90, # Menghadap ke arah lorong terbuka
@@ -297,7 +294,7 @@ class CreepyBed(Entity):
 class MusicInstrument(Entity):
     def __init__(self, position):
         super().__init__(
-            model='alat_music.glb',
+            model=load_model('alat_music.glb'),
             scale=(1.8, 1.8, 1.8), 
             position=(position[0] + 0.5, 1.3, position[2] + 0.5), # Diatur ke Y=1.3 untuk mengangkat pusat model agar menapak lantai
             rotation_y=135, 
@@ -323,7 +320,7 @@ exit_door = ExitDoor(position=(4, 2, 4)) # Di posisi tempat player mulai
 class Ghost(Entity):
     def __init__(self):
         super().__init__(
-            model='kuntilanak_indonesian_ghost_patched.glb',
+            model=load_model('kuntilanak_indonesian_ghost_patched.glb'),
             scale=(2.2, 2.2, 2.2), # Skala lebih besar supaya seram (sekitar 3.8m tinggi!)
             position=(0, -0.6, 0), # Berdiri di ground (agak tenggelam sedikit untuk atur kaki)
             collider='box'
@@ -788,8 +785,8 @@ walk_timer = 0.0
 
 # Jumpscare overlay menggunakan gambar 2D di UI layar penuh
 jumpscare_bg = Entity(parent=camera.ui, model='quad', color=color.black, scale=(3, 3), z=1, enabled=False)
-jumpscare_overlay = Entity(parent=camera.ui, model='quad', texture='kuntilanak_1.png', scale=(1.778 * 1.5, 1.5), z=0, color=color.white, transparent=True, enabled=False)
-jumpscare_blood = Entity(parent=camera.ui, model='quad', texture='blood_splatter.png', scale=(1.778 * 2, 2), z=-2, transparent=True, enabled=False)
+jumpscare_overlay = Entity(parent=camera.ui, model='quad', texture=load_texture('kuntilanak_1.png'), scale=(1.778 * 1.5, 1.5), z=0, color=color.white, transparent=True, enabled=False)
+jumpscare_blood = Entity(parent=camera.ui, model='quad', texture=load_texture('blood_splatter.png'), scale=(1.778 * 2, 2), z=-2, transparent=True, enabled=False)
 game_over = False
 in_menu = True
 
@@ -814,8 +811,8 @@ for _ in range(55): # Turunkan sedikit dari 80 ke 55
 
 # ================= MENU UTAMA & STORY =================
 menu_parent = Entity(parent=camera.ui, z=-10)
-menu_bg = Entity(parent=menu_parent, model='quad', texture='menu_bg.png', scale=(1.778*2, 2), color=color.white)
-menu_vignette = Entity(parent=menu_parent, model='quad', texture='vignette.png', scale=(1.778*2, 2), color=color.rgba32(100, 0, 0, 200), z=-0.05)
+menu_bg = Entity(parent=menu_parent, model='quad', texture=load_texture('menu_bg.png'), scale=(1.778*2, 2), color=color.white)
+menu_vignette = Entity(parent=menu_parent, model='quad', texture=load_texture('vignette.png'), scale=(1.778*2, 2), color=color.rgba32(100, 0, 0, 200), z=-0.05)
 
 # Text dengan drop shadow merayap
 menu_title_shadow = Text(parent=menu_parent, text='Ilmu Alat:\nMisteri Nahwu Shorof', position=(0.005, 0.295), scale=3, origin=(0, 0), color=color.black, z=-0.08)
@@ -825,7 +822,7 @@ menu_subtitle_shadow = Text(parent=menu_parent, text='BY: AREK LOMBOK', position
 menu_subtitle = Text(parent=menu_parent, text='BY: AREK LOMBOK', position=(0, 0.18), scale=1.5, origin=(0, 0), color=color.white, z=-0.1)
 
 story_bg = Entity(parent=camera.ui, model='quad', color=color.clear, scale=(1.778*2, 2), z=-15)
-story_dirty = Entity(parent=camera.ui, model='quad', texture='vignette.png', color=color.clear, scale=(1.778*2, 2), z=-15.5)
+story_dirty = Entity(parent=camera.ui, model='quad', texture=load_texture('vignette.png'), color=color.clear, scale=(1.778*2, 2), z=-15.5)
 story_text = Text(parent=camera.ui, text='', position=(0, 0), origin=(0,0), scale=2, color=color.clear, z=-16)
 story_audio = None
 
@@ -930,7 +927,7 @@ mouse.locked = False
 handgun = Entity(
     parent=camera.ui,
     model='quad',
-    texture='123.png',
+    texture=load_texture('123.png'),
     scale=(0.6 * camera.aspect_ratio, 0.6), # Diperkecil sedikit
     position=(0.3, -0.4, 0), # Agak ke kanan, di sebelah kiri Ammo
     color=color.white # Jangan digelapkan
