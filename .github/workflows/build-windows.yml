@@ -37,7 +37,6 @@ jobs:
         --add-data "*.glb;." `
         --add-data "*.wav;." `
         --add-data "*.mp3;." `
-        --add-data "*.ttf;." `
         --hidden-import="direct.interval.IntervalManager" `
         --hidden-import="panda3d.core" `
         --hidden-import="panda3d.direct" `
