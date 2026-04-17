@@ -1,3 +1,8 @@
+import os, sys
+from pathlib import Path
+if getattr(sys, 'frozen', False):
+    os.chdir(sys._MEIPASS)
+
 from ursina import *
 from ursina import scene, color, window, Entity, Audio, PointLight, AmbientLight, SpotLight, Text, distance, destroy, time, Vec3, Vec2, camera, raycast, held_keys, application, invoke, lerp
 from ursina.prefabs.first_person_controller import FirstPersonController
@@ -30,7 +35,7 @@ ARABIC_FONT = 'assets/fonts/Amiri-Regular.ttf'
 # Untuk development lokal, gunakan: "http://localhost:3000"
 # Untuk deploy via Ngrok, ganti dengan URL Ngrok kamu, contoh:
 #   SERVER_URL = "https://abcd-1234.ngrok-free.app"
-SERVER_URL = "http://localhost:3000"
+SERVER_URL = "http://192.168.18.178:3000"
 API_BASE = f"{SERVER_URL}/api/soal/random"
 
 app = Ursina()

@@ -32,6 +32,8 @@ jobs:
         --add-data "assets;assets" `
         --add-data "config.prc;." `
         --hidden-import="direct.interval.IntervalManager" `
+        --hidden-import="panda3d.core" `
+        --hidden-import="panda3d.direct" `
         --paths="." `
         main.py
 
