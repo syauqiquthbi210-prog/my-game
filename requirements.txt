@@ -2,6 +2,5 @@ ursina
 arabic-reshaper
 python-bidi
 requests
-panda3d
 panda3d-gltf
-simplepbr
+panda3d-simplepbr
